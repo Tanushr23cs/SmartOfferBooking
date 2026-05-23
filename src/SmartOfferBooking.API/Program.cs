@@ -16,7 +16,9 @@ builder.Services.AddApiServices(builder.Configuration);
 //
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    )
+);
 
 //
 // CORS
@@ -29,12 +31,8 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
-
-            // Local frontend
             .WithOrigins(
                 "http://localhost:5173",
-
-                // Vercel frontend URL
                 "https://your-app.vercel.app"
             );
     });
@@ -48,20 +46,19 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 //
-// Swagger
+// Enable Swagger in ALL environments
 //
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
+app.UseSwagger();
 
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint(
-            "/swagger/v1/swagger.json",
-            "Smart Offer Booking API v1"
-        );
-    });
-}
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint(
+        "/swagger/v1/swagger.json",
+        "Smart Offer Booking API v1"
+    );
+
+    c.RoutePrefix = string.Empty;
+});
 
 //
 // HTTPS only in production
@@ -103,9 +100,18 @@ app.MapControllers();
 app.MapHub<BookingHub>("/hubs/booking");
 
 //
-// Seed Database
+// Safe Database Seeding
 //
-await DbSeeder.SeedAsync(app.Services);
+try
+{
+    await DbSeeder.SeedAsync(app.Services);
+    Console.WriteLine("Database seeding completed.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine("Database seeding failed.");
+    Console.WriteLine(ex.Message);
+}
 
 //
 // Run App
