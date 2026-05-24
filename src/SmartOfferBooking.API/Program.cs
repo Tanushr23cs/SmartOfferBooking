@@ -28,10 +28,9 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:5173",
-                "https://smart-offer-booking-jprchhh4h-rtanushjeeva2005-6521s-projects.vercel.app",
-                "https://smart-offer-booking.vercel.app"
+            .SetIsOriginAllowed(origin =>
+                origin.Contains("vercel.app") ||
+                origin.Contains("localhost")
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
