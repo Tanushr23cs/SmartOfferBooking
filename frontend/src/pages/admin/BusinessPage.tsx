@@ -8,7 +8,7 @@ import type { BusinessProfile } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
-import { BUSINESS_TYPES } from '@/lib/utils';
+import { BUSINESS_TYPES, toApiTime } from '@/lib/utils';
 
 const schema = z.object({
   businessName: z.string().min(2),
@@ -44,7 +44,12 @@ export function BusinessPage() {
   const onSubmit = async (data: FormData) => {
     setSaving(true);
     try {
-      const payload = { ...data, logoUrl: data.logoUrl || undefined };
+      const payload = {
+        ...data,
+        logoUrl: data.logoUrl || undefined,
+        openingTime: toApiTime(data.openingTime),
+        closingTime: toApiTime(data.closingTime),
+      };
       if (profile) {
         const updated = await businessApi.update(profile.id, payload);
         setProfile(updated);

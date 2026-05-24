@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime, toApiTime } from '@/lib/utils';
 
 const schema = z.object({
   offerId: z.string().min(1),
@@ -55,7 +55,12 @@ export function SlotsPage() {
   const onSubmit = async (data: FormData) => {
     setSaving(true);
     try {
-      await slotsApi.create(data);
+      const payload = {
+        ...data,
+        startTime: toApiTime(data.startTime),
+        endTime: toApiTime(data.endTime),
+      };
+      await slotsApi.create(payload);
       toast.success('Slot created');
       setModalOpen(false);
       load();

@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ArrowLeft } from 'lucide-react';
 import { offersApi } from '@/lib/api';
+import { toApiTime } from '@/lib/utils';
 import type { Offer } from '@/types';
 import { Card } from '@/components/ui/Card';
 import { OfferForm, offerToFormData, type OfferFormData } from '@/components/admin/OfferForm';
@@ -37,8 +38,8 @@ export function CreateOfferPage() {
 
       const transformedData = {
         ...data,
-        startTime: data.startTime + ':00',
-        endTime: data.endTime + ':00',
+        startTime: toApiTime(data.startTime),
+        endTime: toApiTime(data.endTime),
         status: statusMap[data.status] ?? 0,
       };
       

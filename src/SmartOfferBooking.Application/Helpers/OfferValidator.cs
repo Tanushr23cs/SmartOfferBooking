@@ -43,6 +43,9 @@ public static class OfferValidator
         if (offer.EndDate < today && offer.Status != OfferStatus.Draft)
             return OfferStatus.Expired;
 
+        if (offer.Status == OfferStatus.Expired && offer.EndDate >= today)
+            return OfferStatus.Active;
+
         return offer.Status;
     }
 }

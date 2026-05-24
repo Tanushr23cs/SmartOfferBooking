@@ -20,7 +20,13 @@ public class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
             return result;
         }
 
-        throw new JsonException($"Unable to convert \"{stringValue}\" to TimeOnly with format \"{Format}\".");
+        // Also accept HH:mm (no seconds) — common from HTML time inputs
+        if (TimeOnly.TryParseExact(stringValue, "HH:mm", null, System.Globalization.DateTimeStyles.None, out result))
+        {
+            return result;
+        }
+
+        throw new JsonException($"Unable to convert \"{stringValue}\" to TimeOnly. Expected format \"{Format}\" or \"HH:mm\".");
     }
 
     public override void Write(Utf8JsonWriter writer, TimeOnly value, JsonSerializerOptions options)

@@ -20,23 +20,6 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-//
-// CORS
-//
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy
-            .SetIsOriginAllowed(origin =>
-                origin.Contains("vercel.app") ||
-                origin.Contains("localhost")
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
-    });
-});
 
 var app = builder.Build();
 

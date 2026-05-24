@@ -111,12 +111,19 @@ public static class ServiceCollectionExtensions
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
-                var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173"];
+                var origins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
                 var envOrigins = Environment.GetEnvironmentVariable("CORS_ALLOWED_ORIGINS");
                 if (!string.IsNullOrWhiteSpace(envOrigins))
                     origins = envOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-                policy.WithOrigins(origins)
+                policy.SetIsOriginAllowed(origin =>
+                    {
+                        if (origin.Contains("localhost") || origin.Contains("127.0.0.1"))
+                            return true;
+                        if (origin.Contains("vercel.app"))
+                            return true;
+                        return origins.Any(o => origin.Equals(o, StringComparison.OrdinalIgnoreCase));
+                    })
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials();

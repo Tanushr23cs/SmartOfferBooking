@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Pagination } from '@/components/ui/Pagination';
-import { OFFER_STATUSES, formatCurrency } from '@/lib/utils';
+import { OFFER_STATUSES, formatCurrency, toApiTime } from '@/lib/utils';
 
 export function OffersPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -60,8 +60,8 @@ export function OffersPage() {
         offerPrice: offer.offerPrice,
         startDate: offer.startDate,
         endDate: offer.endDate,
-        startTime: offer.startTime.slice(0, 5),
-        endTime: offer.endTime.slice(0, 5),
+        startTime: toApiTime(offer.startTime),
+        endTime: toApiTime(offer.endTime),
         totalCapacity: offer.totalCapacity,
         maxBookingPerCustomer: offer.maxBookingPerCustomer,
         termsAndConditions: offer.termsAndConditions,

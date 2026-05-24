@@ -131,10 +131,8 @@ See **[DEPLOYMENT.md](./DEPLOYMENT.md)** for Supabase, Render, and Vercel setup.
 
 ### Frontend (`frontend/.env`)
 
-```
-VITE_API_URL=http://localhost:5000
-VITE_HUB_URL=http://localhost:5000/hubs/booking
-```
+VITE_API_URL=https://smartoffer-api-pite.onrender.com
+VITE_HUB_URL=https://smartoffer-api-pite.onrender.com/hubs/booking
 
 ### Backend
 

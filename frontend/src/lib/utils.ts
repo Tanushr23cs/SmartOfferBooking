@@ -33,6 +33,16 @@ export function cn(...classes: (string | false | undefined | null)[]): string {
   return classes.filter(Boolean).join(' ');
 }
 
+/** Normalise a time string from HH:mm (HTML input) to HH:mm:ss (backend). */
+export function toApiTime(time: string): string {
+  if (!time) return time;
+  // Already in HH:mm:ss
+  if (/^\d{2}:\d{2}:\d{2}$/.test(time)) return time;
+  // HH:mm → HH:mm:00
+  if (/^\d{2}:\d{2}$/.test(time)) return time + ':00';
+  return time;
+}
+
 export const OFFER_CATEGORIES = [
   'Lunch Hour Deal',
   'Gym Trial Slot',

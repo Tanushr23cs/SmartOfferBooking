@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { offersApi } from '@/lib/api';
@@ -9,7 +9,7 @@ import { OfferCard } from '@/components/offers/OfferCard';
 import { OfferCardSkeleton } from '@/components/ui/Skeleton';
 import { Pagination } from '@/components/ui/Pagination';
 import { Input } from '@/components/ui/Input';
-import { createHubConnection } from '@/lib/signalr';
+import { getOrCreateHubConnection, safeStartConnection } from '@/lib/signalr';
 
 export function HomePage() {
   const [offers, setOffers] = useState<OfferPublic[]>([]);
@@ -52,22 +52,18 @@ export function HomePage() {
     loadOffers();
   }, [loadOffers]);
 
+  // Keep a ref to the latest loadOffers so SignalR handlers can call it
+  // without forcing the SignalR effect to re-run when `loadOffers` changes.
+  const loadOffersRef = useRef(loadOffers);
   useEffect(() => {
-    const connection = createHubConnection();
+    loadOffersRef.current = loadOffers;
+  }, [loadOffers]);
+
+  useEffect(() => {
+    const connection = getOrCreateHubConnection();
 
     const refresh = () => {
-      loadOffers();
-    };
-
-    const startConnection = async () => {
-      try {
-        if (connection.state === 'Disconnected') {
-          await connection.start();
-          console.log('✅ SignalR Connected');
-        }
-      } catch (err) {
-        console.error('❌ SignalR Connection Error:', err);
-      }
+      loadOffersRef.current();
     };
 
     connection.on('OfferUpdated', (event: OfferUpdatedEvent) => {
@@ -88,18 +84,16 @@ export function HomePage() {
     connection.on('SlotUpdated', refresh);
     connection.on('BookingCreated', refresh);
 
-    startConnection();
+    safeStartConnection(connection);
 
     return () => {
       connection.off('OfferUpdated');
       connection.off('SlotUpdated');
       connection.off('BookingCreated');
-
-      if (connection.state === 'Connected') {
-        connection.stop();
-      }
+      // Do NOT stop the shared connection on unmount
     };
-  }, [loadOffers]);
+    // Mount-only: avoid re-creating the connection when `loadOffers` changes.
+  }, []);
 
   return (
     <PublicLayout>

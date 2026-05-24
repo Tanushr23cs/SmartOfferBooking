@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { HubConnection } from '@microsoft/signalr';
-import { createHubConnection } from '@/lib/signalr';
+import { getOrCreateHubConnection, safeStartConnection } from '@/lib/signalr';
 import type { OfferUpdatedEvent, SlotUpdatedEvent } from '@/types';
 import { useAuthStore } from '@/stores/authStore';
 
@@ -18,17 +18,16 @@ export function useOfferSignalR(
   useEffect(() => {
     if (!offerId) return;
 
-    const connection = createHubConnection();
+    const connection = getOrCreateHubConnection();
     connectionRef.current = connection;
 
     const start = async () => {
       try {
-        await connection.start();
-        console.log("SignalR Connected");
+        await safeStartConnection(connection);
         await connection.invoke('JoinOfferGroup', offerId);
         setConnected(true);
       } catch (err) {
-        console.error("SignalR Connection Error:", err);
+        console.error('SignalR Connection Error:', err);
         setConnected(false);
       }
     };
@@ -38,18 +37,29 @@ export function useOfferSignalR(
     if (onBookingCreated) connection.on('BookingCreated', onBookingCreated);
 
     connection.onreconnected(async () => {
-      await connection.invoke('JoinOfferGroup', offerId);
-      setConnected(true);
+      try {
+        await connection.invoke('JoinOfferGroup', offerId);
+        setConnected(true);
+      } catch (err) {
+        console.error('SignalR Reconnect Error:', err);
+        setConnected(false);
+      }
     });
 
     start();
 
     return () => {
-      connection.stop();
+      connection.off('SlotUpdated');
+      connection.off('OfferUpdated');
+      connection.off('BookingCreated');
       connectionRef.current = null;
       setConnected(false);
+      // Do NOT stop the shared connection on unmount — other components may still use it.
     };
-  }, [offerId, onSlotUpdated, onOfferUpdated, onBookingCreated]);
+    // Only recreate connection when offerId changes. Handlers may change but
+    // we avoid restarting on handler identity changes to prevent duplicate
+    // connection starts.
+  }, [offerId]);
 
   return { connected };
 }
@@ -65,16 +75,15 @@ export function useAdminSignalR(
   useEffect(() => {
     if (!token) return;
 
-    const connection = createHubConnection(token);
+    const connection = getOrCreateHubConnection(token);
 
     const start = async () => {
       try {
-        await connection.start();
-        console.log("SignalR Connected");
+        await safeStartConnection(connection);
         await connection.invoke('JoinAdminDashboard');
         setConnected(true);
       } catch (err) {
-        console.error("SignalR Connection Error:", err);
+        console.error('SignalR Connection Error:', err);
         setConnected(false);
       }
     };
@@ -84,17 +93,27 @@ export function useAdminSignalR(
     if (onOfferUpdated) connection.on('OfferUpdated', onOfferUpdated);
 
     connection.onreconnected(async () => {
-      await connection.invoke('JoinAdminDashboard');
-      setConnected(true);
+      try {
+        await connection.invoke('JoinAdminDashboard');
+        setConnected(true);
+      } catch (err) {
+        console.error('SignalR Reconnect Error:', err);
+        setConnected(false);
+      }
     });
 
     start();
 
     return () => {
-      connection.stop();
+      connection.off('SlotUpdated');
+      connection.off('OfferUpdated');
+      connection.off('BookingCreated');
       setConnected(false);
+      // Do NOT stop the shared connection on unmount — it is shared globally.
     };
-  }, [token, onSlotUpdated, onBookingCreated, onOfferUpdated]);
+    // Only recreate when token changes; ignore handler identity to avoid
+    // accidental restarts when handlers are re-created by parent components.
+  }, [token]);
 
   return { connected };
 }
