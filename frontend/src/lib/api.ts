@@ -33,7 +33,7 @@ api.interceptors.response.use(
     if (!error.response) {
       return Promise.reject(
         new Error(
-          'Cannot reach the API. Start the backend first: from SmartOfferBooking folder run .\\start-backend.ps1 (must listen on http://localhost:5000).'
+          'Cannot reach the API. Start the backend first: from SmartOfferBooking folder run .\\start-backend.ps1.'
         )
       );
     }
