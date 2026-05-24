@@ -24,9 +24,11 @@ export function useOfferSignalR(
     const start = async () => {
       try {
         await connection.start();
+        console.log("SignalR Connected");
         await connection.invoke('JoinOfferGroup', offerId);
         setConnected(true);
-      } catch {
+      } catch (err) {
+        console.error("SignalR Connection Error:", err);
         setConnected(false);
       }
     };
@@ -68,9 +70,11 @@ export function useAdminSignalR(
     const start = async () => {
       try {
         await connection.start();
+        console.log("SignalR Connected");
         await connection.invoke('JoinAdminDashboard');
         setConnected(true);
-      } catch {
+      } catch (err) {
+        console.error("SignalR Connection Error:", err);
         setConnected(false);
       }
     };
