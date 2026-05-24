@@ -28,13 +28,14 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
             .WithOrigins(
                 "http://localhost:5173",
-                "https://your-app.vercel.app"
-            );
+                "https://smart-offer-booking-jprchhh4h-rtanushjeeva2005-6521s-projects.vercel.app",
+                "https://smart-offer-booking.vercel.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
